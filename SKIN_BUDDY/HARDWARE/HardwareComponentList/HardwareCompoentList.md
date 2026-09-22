@@ -26,5 +26,21 @@
    
    Core question - how this product would help dermatologist and how much value proposition ? 
 
-   
-## 
+   <Write the list of components needed>
+   <>
+
+## <TBD about this hardware component>
+
+
+
+
+## Models trained on real dermatology: 
+   - Is it a USP: Models trained on real dermatology --> scans passed to general-purpose vision API.
+
+   -  
+
+## Customer Profile and Types of Customers we have: 
+   When: Daily sessions of 10-20 minutes.
+
+   How to use? 
+   Specificity: 
