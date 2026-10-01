@@ -34,3 +34,5 @@ the KV-Cache (Key-Value) so you can refer to the weights for the same incoming t
 Also, 
 
   <TODO> How does this technology work in real life? 
+
+![paged attentionKV-Cache](paged_attention.gif)
