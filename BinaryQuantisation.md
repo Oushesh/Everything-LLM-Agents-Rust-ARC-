@@ -1,4 +1,4 @@
-## OPtimising High-Dimensional Vectors with Binary Quantisation
+## Optimising High-Dimensional Vectors with Binary Quantisation
 
 
 ## Binary Quantisation: definition
@@ -32,3 +32,5 @@
 
 
 ## Binary Quantisation 
+
+## <Add diagram here explaining the Binary Quantisation>
