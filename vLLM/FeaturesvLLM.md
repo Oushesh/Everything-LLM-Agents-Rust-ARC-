@@ -2,7 +2,7 @@
    Draft Models configures vLLM in an offline mode to use speculative decoding: speculating 5 tokens at a time.
 
 
-## Below is a digram of the TLI (Token Level )
+## Below is a digram of the TLI (Token Level Intersection)
 
 
 ## TLI Algorithm Overhead (Token Level Intersection: TLI)
@@ -12,7 +12,6 @@
 
    TLI Algorithmic Pseudocode: 
    
-
     ```python:
 
     # ----------------
@@ -45,7 +44,6 @@
         return draft_valid_mask, draft_target, target_to_draft
     ```
 
-
 # Visual Architecture: String Sets vs. Raw Bytes 
   ```rust
 
@@ -59,13 +57,9 @@
 
   {"apple"} & {"Ġapple"} & {" apple"} = Empty intersection
 
-  Why B
-
-
-
   Why Byte-Normalized Intersection Succeds: 
   Decode to Raw Bytes: 
-  Token A --> b'apple' 
+  Token A --> b'apple' (G decode to )
   Token B --> b' apple' (G decoded to Ox20 space)
   Token C --> b' apple' ( decoded to Ox20 space)
 
@@ -76,7 +70,6 @@
   Why Intersecting Over Bytes Instead of Python Strings? 
 
   In modern LLM tokenizers (tiktoken, HuggingFace BPE, Sentence Piece), if done directly onto the string python level, it would miss most of the inte
-
 
 ## Minimal vLLM Configuration: 
    You can enable heterogeneous draft speculation by passing speculative_config with use_heteregeous_vocab: True.
@@ -108,16 +101,15 @@
     print (outputs[0].outpus[0].text)
     ```
 
-## Why incompatible Embedding Spaces Don't break Speculative Decoing
-   
-   In standard speculative decoding:    
+## Why incompatible Embedding Spaces Don't break Speculative Decoding   
+   In standard speculative decoding:     
    1. The draft model generates K candidate tokens sequentially.
    2. The draft tokens are passed to target model as candidate inputs.
    3. The target model evaluates them in a single batched forward pass and verifies them.  
 
    The internal model activations, weight geometries and hidden embeddings (latentspace) are never passed to the target model. The target model looks up its own embeddings for whatever token IDs it receives.
 
-   Where the Challenge Actually Lies: The Tokenizer Mismatch
+   Where the Challenge Actually Lies: The Tokenizer Mismatch --> TLI ()
 
    The difficulty comes from how different tokenizers segment the same text: 
 
@@ -194,3 +186,13 @@
 
 ## Reference: 
    * https://docs.vllm.ai/en/latest/features/speculative_decoding/draft_model/
+
+
+## Diagram of how this process works: 
+   Switching between Draft Vocabulary and Target Vocabulary
+
+   [Draft Vocabulary].                [Target Vocabulary]
+          │                                     │
+                  [Normalise Token Strings]
+
+
