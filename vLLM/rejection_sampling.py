@@ -47,11 +47,9 @@
 
         # 2. Draw uniform random 
 
-
    if __name__ == "__main__":
        input = 
        function = 
-
 
 ´´´
 
