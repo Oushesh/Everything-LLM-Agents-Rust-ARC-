@@ -18,3 +18,11 @@
 | **Primary Goal** | Fine-grained internal logic, corner cases, and private helper functions | End-to-end API verification from an external consumer's perspective |
 
 ---
+
+
+## Running test:
+   - # Run all unit tests and integration tests
+    cargo test
+
+     # Run only the integration tests in tests/test_sampler.rs
+    cargo test --test test_sampler
