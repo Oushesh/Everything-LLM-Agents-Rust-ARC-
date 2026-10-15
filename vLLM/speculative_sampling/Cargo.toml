@@ -1,0 +1,25 @@
+[package]
+name = "speculative_sampling"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Small, fast non-cryptographic RNG suitable for high-throughput speculative_sampling
+rand = "0.8"
+rand_xoshiro = "0.6"
+
+
+[dev-dependencies]
+criterion = "0.5"
+
+[profile.release]
+opt-level = 3
+lto = "fat"  # Link-Time Optimization
+codegen-units = 1
+panic = "abort"
+
+
+[build]
+rustflags = ["-C", "target-cpu=native"]
+
+# This is needed for apple silicon.
