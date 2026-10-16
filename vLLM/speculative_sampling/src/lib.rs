@@ -75,13 +75,6 @@ mod tests {
                 VerificationResult::Accepted(x)
             }
         }
-
-
-
         
-        
-        }
-
-        
-        
+        }        
     }
