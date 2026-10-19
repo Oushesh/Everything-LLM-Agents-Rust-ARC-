@@ -19,7 +19,6 @@
 
 ---
 
-
 ## Running test:
    - # Run all unit tests and integration tests
     cargo test
@@ -33,3 +32,5 @@
 Visibility	Can test private functions (fn, internal helpers).	Can only test pub items exposed by lib.rs.
 Compilation	Built directly into the library artifact.	Built as a standalone executable crate linking to lib.rs.
 Primary Goal	Fine-grained internal logic, corner cases of private methods.	End-to-end API usability, verifying crate works as external consumers see it.
+
+
