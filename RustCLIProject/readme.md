@@ -17,4 +17,8 @@
 
    Rust analyzer --> and Github Copilot. 
 
-   
+
+## Architecture of Software Writing Rust:
+   Just like in python you use several .py files and import into the main.py
+
+   The simplest file: lib.rs file. In rust you can use the .rs file.
