@@ -198,9 +198,48 @@
 
     print(counter.value)
     ```
-
     
+    Some notes on referencing and de-referencing the pointer in Rust: 
+    Whats the differene between & and * ? 
+    & --> reference to a variable
+    * --> derefencing pointer it usually accesses the memory value and updates it.
+    Example: *num+=1 --> accesses the value saved at memory address of num and increments it by 1.
 
+
+## 9. The one Rule to Remember As a Beginner for the Send  and Sync  Procedure: 
+      you almost 
+
+      Send and Sync Concept in Rust --> "Can I mail this physical page to another office?"
+
+      Yes (Send): You hand the piece of paper completely to another worker. You dont have it anymore, they do.
+
+      No (Not send): A document tied to your desk (like a single threaded reference counter). Handing it over causes a breakdown. (Why? Single threaded)
+
+    ## 1. 'Send' (Moving Ownership): 
+       Most standard types ('i32', 'String', 'Vec<T>') implement 'Send'. Single-threaded wrappers like 'Rc<T>' are NOT send. 
+
+       The usual types we have do. 
+    
+    ## 2. 'Sync' (Sharing References):
+       Immutable references to static or immutable data can be read concurrently. Mutable shared state
+       requires thread-safe synchronisation.
+
+       ```rust
+          use std::sync::{Arc,Mutex};
+          use std::thread;
+
+          //Arc: Atomic Reference Counter
+          // Mutex: provides thread-safe interior mutability
+          let counter = Arc::new(Mutex::new(0));
+          let counter_clone = Arc::clone(&counter);
+
+          let handle = thread::spawn(move || {
+            let mut lock
+          }
+          
+          )  
+       ```
+       
 
     
 
