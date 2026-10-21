@@ -240,8 +240,18 @@
           )  
        ```
        
+    ```rust
+       //What happpens if you Try Only Mutex?
+       //if you try to pass a plan Mutex into a thread 
+       // without Arc, the code fails to compile 
 
-    
+       // In Rust, you assemble safety primitives like Lego Blocks: 
+       // arc (Mutex(x)) 
+       //x: data
+       // arc: Atomic Reference Counter --> Safe to share between //threads
+       // Mutex: Safe to mutate conccurrently.
+         
+    ``` 
 
 
 
