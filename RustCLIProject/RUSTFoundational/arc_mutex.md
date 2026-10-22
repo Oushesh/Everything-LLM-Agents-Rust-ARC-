@@ -1,3 +1,7 @@
+# Arc and Mutex in Rust
+
+![Arc and Mutex in Rust](Arc_Mutex_x.jpeg)
+
 ```rust
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -19,3 +23,4 @@ fn main() {
     println!("Final value: {}", counter.lock().unwrap());
 }
 ```
+
