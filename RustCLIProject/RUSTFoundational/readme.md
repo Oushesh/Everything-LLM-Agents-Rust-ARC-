@@ -277,7 +277,7 @@ fn main() {
 }
 
 
-``rust
+```rust
 use std::sync::{Arc, Mutex};
 use std::thread;
 
