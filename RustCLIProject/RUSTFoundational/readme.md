@@ -250,9 +250,31 @@
        //x: data
        // arc: Atomic Reference Counter --> Safe to share between //threads
        // Mutex: Safe to mutate conccurrently.
-         
+    
+    
     ``` 
+    use std::sync::{Arc, Mutex};
+    use std::thread;
 
+fn main() {
+    // 1. Arc holds the reference counter; Mutex protects the integer
+    let counter = Arc::new(Mutex::new(0));
+
+    // 2. Clone the Arc pointer (bumps ref count to 2, does NOT clone the number)
+    let counter_clone = Arc::clone(&counter);
+
+    // 3. Move the clone into a background thread
+    let handle = thread::spawn(move || {
+        let mut data = counter_clone.lock().unwrap();
+        *data += 10;
+    });
+
+    // 4. Wait for the background thread to finish
+    handle.join().unwrap();
+
+    // 5. Read the modified value from the main thread
+    println!("Final value: {}", counter.lock().unwrap()); // 10
+}
 
 
    
