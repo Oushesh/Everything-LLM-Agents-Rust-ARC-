@@ -1,0 +1,1 @@
+https://magazine.sebastianraschka.com/p/building-reasoning-models
