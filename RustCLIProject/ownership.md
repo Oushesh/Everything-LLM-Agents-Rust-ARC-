@@ -18,8 +18,13 @@
    what happens? In C and C++ you ask the programmer to:
    to do so via malloc (memory allocation) and free to free them.
     
-   Python: In python you wanna ask the garbage collactor, Go, Javascript
+   * Python: In python you wanna ask the garbage collector, Go, Javascript
    Go: is also good. 
    
-   Rust: using ownership rules at compile time. 
-##  
+   Rust: using ownership rules at compile time.  SO it completely safe checked even
+   before the code is shipped to be used. 
+
+##  Rust: 
+    memory Safety before Garbage Collector.
+
+## 
