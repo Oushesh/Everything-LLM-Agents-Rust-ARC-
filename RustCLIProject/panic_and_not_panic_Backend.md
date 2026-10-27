@@ -18,6 +18,10 @@
    ```
    rust: 
    pub fn parse_port_naive(s:&str) -> u16 {
+        let port: u32 = s.parse().unwrap(); //panics if not an integer
+        if !(1..=65535).contains(&port) {
+   
+        }
    }
 
    ´´´
