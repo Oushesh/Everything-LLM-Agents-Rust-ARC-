@@ -71,9 +71,7 @@ when we dont know we actually panic! and send message.
     Ok(port) => printlin!("Listening on port{port}"),
     Err(PortError::InvalidDigit) => eprintln!("PLease provisw"),
     Err(PortError::Outof Range(p)) => eprintln!("Port {p must be between 1 and 65535}"),
-    
 
 }
-
 ```
 
