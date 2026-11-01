@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "crates/habit_core",
+    "crates/habit_server"
+]
+resolver = "2"
