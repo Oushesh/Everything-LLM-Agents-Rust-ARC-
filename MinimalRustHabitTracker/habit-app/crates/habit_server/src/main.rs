@@ -200,3 +200,10 @@ async fn render_dashboard() -> impl IntoResponse {
 </body>
 </html>"#)
 }
+
+
+//So we could design every page for the future.
+//Maybe tailwind css and stuffs here
+
+// How do we do this for every page ?
+
