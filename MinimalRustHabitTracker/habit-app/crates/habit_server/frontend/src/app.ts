@@ -177,6 +177,10 @@ export class HabitApp {
       await this.markWeekOff(target.dataset.date);
       return;
     }
+    if (action === "set-status" && target.dataset.status) {
+      await this.setDayStatus(target.dataset.status);
+      return;
+    }
     if (action === "save-note") {
       await this.saveNote();
       return;
@@ -396,6 +400,21 @@ export class HabitApp {
       this.state.error = "The backup setting could not be saved.";
       this.render();
     }
+  }
+
+  async setDayStatus(status: string): Promise<void> {
+    const allowed: LogStatus[] = ["completed", "failed", "skipped", "in_progress", "pending"];
+    if (!allowed.includes(status as LogStatus)) return;
+    const detail = this.state.detail;
+    const day = detail?.days.find((item) => item.date === this.state.selectedDay);
+    if (!detail || !day || !this.state.habitId) return;
+    const next = status as LogStatus;
+    const value = next === "completed"
+      ? detail.habit.target_value || 1
+      : next === "in_progress"
+        ? day.value
+        : 0;
+    await this.setStatus(this.state.habitId, day.date, next, value, null);
   }
 
   async saveNote(): Promise<void> {

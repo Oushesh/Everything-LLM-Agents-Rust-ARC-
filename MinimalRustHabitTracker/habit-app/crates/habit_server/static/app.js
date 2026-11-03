@@ -44,13 +44,20 @@
     };
     root.innerHTML = `<div class="mb-4 flex gap-1 overflow-x-auto">${tabs}</div>${bodies[app.state.detailTab]}`;
   }
+  var WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  function scheduleLabel(days) {
+    if (!Array.isArray(days) || days.length === 0 || days.length === 7) return "Every day";
+    return days.map((day) => WEEKDAYS[day] ?? "").filter(Boolean).join(" \xB7 ");
+  }
   function detailOverview(app, detail) {
     const day = detail.days.find((item) => item.date === app.state.selectedDay) ?? detail.days[0];
     if (!day) return `<p class="py-16 text-center text-sm text-zinc-400">This month has no days.</p>`;
     return `
     <section class="space-y-3 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <p class="text-xs uppercase text-zinc-400">${app.esc(detail.habit.habit_type)} \xB7 target ${detail.habit.target_value}</p>
+      <p class="text-xs uppercase text-zinc-400">${app.esc(detail.habit.habit_type)} \xB7 target ${detail.habit.target_value}${detail.habit.unit ? ` ${app.esc(detail.habit.unit)}` : ""}</p>
+      <p class="text-sm text-zinc-500">${app.esc(scheduleLabel(detail.habit.schedule_days))}</p>
       <p class="text-sm">${app.esc(day.date)} is ${app.esc(day.status.replace(/_/g, " "))}</p>
+      ${day.note ? `<p class="rounded-xl bg-zinc-50 px-3 py-2 text-sm text-zinc-600 dark:bg-zinc-800/50 dark:text-zinc-300">${app.esc(day.note)}</p>` : ""}
       <div class="grid grid-cols-2 gap-3">
         <div class="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/50"><div class="text-2xl font-bold text-indigo-500">${detail.current_streak}</div><p class="text-xs text-zinc-400">Current streak</p></div>
         <div class="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/50"><div class="text-2xl font-bold text-indigo-500">${detail.best_streak}</div><p class="text-xs text-zinc-400">Best streak</p></div>
@@ -89,7 +96,14 @@
         ${detail.current_streak > 0 ? `<span class="rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white">Streak kept</span>` : ""}
       </div>
       <button type="button" data-action="vacation-week" data-date="${selected.date}" class="w-full rounded-xl border border-indigo-200 px-3 py-2 text-sm font-medium text-indigo-600">Mark the week of ${selected.date} as vacation</button>
-      <button type="button" data-action="cycle" data-id="${app.esc(detail.habit.id)}" data-date="${selected.date}" data-status="${selected.status}" class="w-full rounded-xl bg-zinc-900 px-3 py-2 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">Cycle ${selected.date}</button>
+      <div>
+        <p class="mb-2 text-xs font-medium text-zinc-500">Set ${selected.date} to</p>
+        <div class="flex flex-wrap gap-1.5">
+          ${["completed", "failed", "skipped", "in_progress", "pending"].map((status) => `
+            <button type="button" data-action="set-status" data-status="${status}" class="rounded-full px-3 py-1.5 text-xs font-medium ${status === selected.status ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900" : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"}">${app.statusIcon(status)} ${status.replace(/_/g, " ")}</button>`).join("")}
+        </div>
+      </div>
+      ${selected.note ? `<p class="rounded-xl bg-zinc-50 px-3 py-2 text-sm text-zinc-600 dark:bg-zinc-800/50 dark:text-zinc-300">${app.esc(selected.note)}</p>` : ""}
       <div class="grid grid-cols-2 gap-2 text-xs text-zinc-500">
         <span>\u2713 Completed</span><span>\xD7 Failed</span><span>\u2013 Skipped</span><span>\u203A In progress</span><span>\u25CB Pending</span><span>\u2022 Has note</span>
       </div>
@@ -128,7 +142,7 @@
     const selected = detail.days.find((day) => day.date === app.state.selectedDay) ?? detail.days[0];
     if (!selected) return `<p class="py-16 text-center text-sm text-zinc-400">This month has no days.</p>`;
     const reminder = app.state.reminder;
-    const notes = detail.days.filter((day) => day.has_note).map((day) => `<li>${app.esc(day.date)}</li>`).join("");
+    const notes = detail.days.filter((day) => day.has_note).map((day) => `<li><span class="text-zinc-400">${app.esc(day.date)}</span> ${app.esc(day.note ?? "")}</li>`).join("");
     return `
     <section class="space-y-3 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
       <h3 class="text-sm font-semibold">Reminder</h3>
@@ -139,7 +153,7 @@
       <input id="reminder-time" type="time" value="${app.esc(reminder?.remind_at ?? "09:00")}" class="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
       <button type="button" data-action="save-reminder" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Save reminder</button>
       <h3 class="pt-2 text-sm font-semibold">Note for ${selected.date}</h3>
-      <input id="day-note" type="text" placeholder="Write a note" class="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+      <input id="day-note" type="text" placeholder="Write a note" value="${app.esc(selected.note ?? "")}" class="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
       <button type="button" data-action="save-note" class="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">Save note</button>
       <ul class="list-disc pl-5 text-sm text-zinc-500">${notes || "<li>No notes this month.</li>"}</ul>
     </section>`;
@@ -455,6 +469,10 @@
         await this.markWeekOff(target.dataset.date);
         return;
       }
+      if (action === "set-status" && target.dataset.status) {
+        await this.setDayStatus(target.dataset.status);
+        return;
+      }
       if (action === "save-note") {
         await this.saveNote();
         return;
@@ -657,6 +675,16 @@
         this.state.error = "The backup setting could not be saved.";
         this.render();
       }
+    }
+    async setDayStatus(status) {
+      const allowed = ["completed", "failed", "skipped", "in_progress", "pending"];
+      if (!allowed.includes(status)) return;
+      const detail = this.state.detail;
+      const day = detail?.days.find((item) => item.date === this.state.selectedDay);
+      if (!detail || !day || !this.state.habitId) return;
+      const next = status;
+      const value = next === "completed" ? detail.habit.target_value || 1 : next === "in_progress" ? day.value : 0;
+      await this.setStatus(this.state.habitId, day.date, next, value, null);
     }
     async saveNote() {
       const noteInput = document.getElementById("day-note");

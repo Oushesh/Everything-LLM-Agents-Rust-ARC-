@@ -44,6 +44,7 @@ export interface HabitDay {
   status: LogStatus;
   value: number;
   has_note: boolean;
+  note: string | null;
 }
 
 export interface HabitMonth {
