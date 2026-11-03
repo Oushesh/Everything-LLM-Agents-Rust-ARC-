@@ -100,6 +100,7 @@ export class HabitApp {
     }
     if (action === "open-create") {
       input("new-is-task").checked = this.state.tab === "tasks";
+      this.modalError("");
       this.showModal(true);
       return;
     }
@@ -282,9 +283,19 @@ export class HabitApp {
     void this.refresh();
   }
 
+  modalError(message: string): void {
+    const box = document.getElementById("modal-error");
+    if (!box) return;
+    box.textContent = message;
+    box.classList.toggle("hidden", !message);
+  }
+
   async createHabit(): Promise<void> {
     const title = input("new-title").value.trim();
-    if (!title) return;
+    if (!title) {
+      this.modalError("Give the habit a title first.");
+      return;
+    }
     const selectedType = select("new-type").value;
     const habitType: HabitType = isHabitType(selectedType) ? selectedType : "boolean";
     const target = Number(input("new-target").value) || 1;
@@ -310,11 +321,11 @@ export class HabitApp {
       });
       input("new-title").value = "";
       input("new-unit").value = "";
+      this.modalError("");
       this.showModal(false);
       await this.refresh();
     } catch {
-      this.state.error = "The habit could not be saved.";
-      this.render();
+      this.modalError("The habit could not be saved. Is the server running the latest build?");
     }
   }
 

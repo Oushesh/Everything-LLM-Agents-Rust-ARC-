@@ -25,5 +25,5 @@ pub async fn get_today_habits(
     store
         .get_today_overview(date)
         .map(Json)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        .map_err(|err| super::log_error("get_today_habits", err))
 }

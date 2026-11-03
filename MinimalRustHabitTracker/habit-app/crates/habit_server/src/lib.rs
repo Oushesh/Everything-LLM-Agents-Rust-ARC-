@@ -2,15 +2,35 @@ mod routes;
 
 use std::path::PathBuf;
 
-use axum::{routing::{get, post}, Json, Router};
+use axum::{extract::State, http::StatusCode, routing::{get, post}, Json, Router};
 use habit_core::HabitStore;
-use serde_json::json;
+use serde_json::{json, Value};
 use tower_http::{cors::CorsLayer, services::{ServeDir, ServeFile}};
+
+async fn health(State(store): State<HabitStore>) -> (StatusCode, Json<Value>) {
+    match store.missing_columns() {
+        Ok(missing) if missing.is_empty() => (StatusCode::OK, Json(json!({ "status": "ok" }))),
+        Ok(missing) => {
+            eprintln!("[habit_server] health check: missing columns {missing:?}");
+            (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({ "status": "degraded", "missing_columns": missing })),
+            )
+        }
+        Err(err) => {
+            eprintln!("[habit_server] health check failed: {err}");
+            (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({ "status": "degraded", "error": err.to_string() })),
+            )
+        }
+    }
+}
 
 pub fn app(store: HabitStore) -> Router {
     let static_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("static");
     let api = Router::new()
-        .route("/api/health", get(|| async { Json(json!({ "status": "ok" })) }))
+        .route("/api/health", get(health))
         .route("/api/today", get(routes::today::get_today_habits))
         .route("/api/habits", post(routes::habits::create_habit))
         .route("/api/habits/{id}/status", post(routes::habits::update_habit_status))

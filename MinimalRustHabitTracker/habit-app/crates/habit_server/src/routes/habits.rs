@@ -34,7 +34,7 @@ pub async fn create_habit(
             payload.is_task.unwrap_or(false),
             payload.schedule_days,
         )
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|err| super::log_error("create_habit", err))?;
 
     Ok((StatusCode::CREATED, Json(json!({ "id": id }))))
 }
@@ -55,6 +55,6 @@ pub async fn update_habit_status(
     let status = LogStatus::from_str(&payload.status);
     store
         .set_log_status(&id, &payload.date, status, payload.value, payload.note)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|err| super::log_error("update_habit_status", err))?;
     Ok(StatusCode::OK)
 }

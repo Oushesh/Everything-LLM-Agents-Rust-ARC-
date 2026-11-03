@@ -1,5 +1,24 @@
 import type { HabitApp } from "../app";
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function yearChart(monthly: number[] | undefined): string {
+  const values = Array.from({ length: 12 }, (_, index) => monthly?.[index] ?? 0);
+  const max = Math.max(...values, 1);
+  const currentMonth = new Date().getMonth();
+  const bars = values.map((value, index) => {
+    const height = Math.max(4, Math.round((value / max) * 100));
+    const bar = index === currentMonth ? "bg-indigo-500" : "bg-indigo-300 dark:bg-indigo-500/50";
+    return `
+      <div class="flex flex-1 flex-col items-center justify-end gap-1" title="${MONTHS[index]}: ${value}">
+        <span class="text-[9px] text-zinc-400">${value || ""}</span>
+        <div class="flex h-24 w-full items-end"><div class="w-full rounded-t ${bar}" style="height:${height}%"></div></div>
+        <span class="text-[9px] ${index === currentMonth ? "font-semibold text-indigo-500" : "text-zinc-400"}">${MONTHS[index][0]}</span>
+      </div>`;
+  }).join("");
+  return `<div class="mt-3 flex items-end gap-1">${bars}</div>`;
+}
+
 export function renderStatistics(app: HabitApp, root: HTMLElement): void {
   const stats = app.state.stats;
   if (!stats) {
@@ -44,6 +63,10 @@ export function renderStatistics(app: HabitApp, root: HTMLElement): void {
           ${tile(stats.completions_year, "This year")}
           ${tile(stats.completions_all_time, "All time")}
         </div>
+      </section>
+      <section class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <h3 class="text-xs font-bold uppercase text-zinc-400">This year</h3>
+        ${yearChart(stats.monthly_completions)}
       </section>
     </div>`;
 }

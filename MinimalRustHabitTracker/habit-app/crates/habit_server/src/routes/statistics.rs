@@ -8,5 +8,5 @@ pub async fn get_statistics(
     store
         .get_global_statistics(Utc::now().date_naive())
         .map(Json)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        .map_err(|err| super::log_error("get_statistics", err))
 }

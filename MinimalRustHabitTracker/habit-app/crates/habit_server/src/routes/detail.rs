@@ -26,7 +26,7 @@ pub async fn get_habit_month(
     match store.get_habit_month(&id, month_start, today) {
         Ok(Some(body)) => Ok(Json(body)),
         Ok(None) => Err(StatusCode::NOT_FOUND),
-        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+        Err(err) => Err(super::log_error("get_habit_month", err)),
     }
 }
 
@@ -37,7 +37,7 @@ pub async fn get_habit_statistics(
     match store.get_habit_statistics(&id, Utc::now().date_naive()) {
         Ok(Some(body)) => Ok(Json(body)),
         Ok(None) => Err(StatusCode::NOT_FOUND),
-        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+        Err(err) => Err(super::log_error("get_habit_statistics", err)),
     }
 }
 
@@ -48,7 +48,7 @@ pub async fn get_reminder(
     match store.get_reminder(&id) {
         Ok(Some(body)) => Ok(Json(body)),
         Ok(None) => Err(StatusCode::NOT_FOUND),
-        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+        Err(err) => Err(super::log_error("get_reminder", err)),
     }
 }
 
@@ -68,7 +68,7 @@ pub async fn set_reminder(
     match store.set_reminder(reminder) {
         Ok(Some(())) => Ok(StatusCode::OK),
         Ok(None) => Err(StatusCode::NOT_FOUND),
-        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+        Err(err) => Err(super::log_error("set_reminder", err)),
     }
 }
 

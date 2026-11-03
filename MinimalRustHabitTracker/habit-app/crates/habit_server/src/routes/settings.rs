@@ -5,7 +5,7 @@ pub async fn get_settings(State(store): State<HabitStore>) -> Result<Json<AppSet
     store
         .get_settings()
         .map(Json)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        .map_err(|err| super::log_error("get_settings", err))
 }
 
 pub async fn set_settings(
@@ -15,5 +15,5 @@ pub async fn set_settings(
     store
         .set_settings(settings)
         .map(|()| StatusCode::OK)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        .map_err(|err| super::log_error("set_settings", err))
 }

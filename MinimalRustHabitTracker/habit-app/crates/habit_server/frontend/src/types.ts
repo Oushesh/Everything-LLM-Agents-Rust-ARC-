@@ -37,6 +37,7 @@ export interface GlobalStats {
   completions_month: number;
   completions_year: number;
   completions_all_time: number;
+  monthly_completions: number[];
 }
 
 export interface HabitDay {

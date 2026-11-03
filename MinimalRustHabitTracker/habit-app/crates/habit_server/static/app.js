@@ -217,6 +217,23 @@
   }
 
   // src/views/statistics.ts
+  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function yearChart(monthly) {
+    const values = Array.from({ length: 12 }, (_, index) => monthly?.[index] ?? 0);
+    const max = Math.max(...values, 1);
+    const currentMonth = (/* @__PURE__ */ new Date()).getMonth();
+    const bars = values.map((value, index) => {
+      const height = Math.max(4, Math.round(value / max * 100));
+      const bar = index === currentMonth ? "bg-indigo-500" : "bg-indigo-300 dark:bg-indigo-500/50";
+      return `
+      <div class="flex flex-1 flex-col items-center justify-end gap-1" title="${MONTHS[index]}: ${value}">
+        <span class="text-[9px] text-zinc-400">${value || ""}</span>
+        <div class="flex h-24 w-full items-end"><div class="w-full rounded-t ${bar}" style="height:${height}%"></div></div>
+        <span class="text-[9px] ${index === currentMonth ? "font-semibold text-indigo-500" : "text-zinc-400"}">${MONTHS[index][0]}</span>
+      </div>`;
+    }).join("");
+    return `<div class="mt-3 flex items-end gap-1">${bars}</div>`;
+  }
   function renderStatistics(app, root) {
     const stats = app.state.stats;
     if (!stats) {
@@ -261,6 +278,10 @@
           ${tile(stats.completions_year, "This year")}
           ${tile(stats.completions_all_time, "All time")}
         </div>
+      </section>
+      <section class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <h3 class="text-xs font-bold uppercase text-zinc-400">This year</h3>
+        ${yearChart(stats.monthly_completions)}
       </section>
     </div>`;
   }
@@ -392,6 +413,7 @@
       }
       if (action === "open-create") {
         input("new-is-task").checked = this.state.tab === "tasks";
+        this.modalError("");
         this.showModal(true);
         return;
       }
@@ -565,9 +587,18 @@
       this.state.menuOpen = false;
       void this.refresh();
     }
+    modalError(message) {
+      const box = document.getElementById("modal-error");
+      if (!box) return;
+      box.textContent = message;
+      box.classList.toggle("hidden", !message);
+    }
     async createHabit() {
       const title = input("new-title").value.trim();
-      if (!title) return;
+      if (!title) {
+        this.modalError("Give the habit a title first.");
+        return;
+      }
       const selectedType = select("new-type").value;
       const habitType = isHabitType(selectedType) ? selectedType : "boolean";
       const target = Number(input("new-target").value) || 1;
@@ -591,11 +622,11 @@
         });
         input("new-title").value = "";
         input("new-unit").value = "";
+        this.modalError("");
         this.showModal(false);
         await this.refresh();
       } catch {
-        this.state.error = "The habit could not be saved.";
-        this.render();
+        this.modalError("The habit could not be saved. Is the server running the latest build?");
       }
     }
     async adjust(id, date, delta) {

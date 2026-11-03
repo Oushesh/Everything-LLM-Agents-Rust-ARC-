@@ -5,7 +5,7 @@ pub async fn export_backup(State(store): State<HabitStore>) -> Result<Json<Backu
     store
         .export_snapshot()
         .map(Json)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        .map_err(|err| super::log_error("export_backup", err))
 }
 
 pub async fn restore_backup(
@@ -15,5 +15,5 @@ pub async fn restore_backup(
     store
         .restore_snapshot(snapshot)
         .map(|()| StatusCode::OK)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        .map_err(|err| super::log_error("restore_backup", err))
 }
