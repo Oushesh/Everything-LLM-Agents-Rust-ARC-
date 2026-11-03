@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HabitGrip</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: "class" }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-zinc-100 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 min-h-screen">
+  <div class="relative mx-auto flex min-h-screen max-w-md flex-col px-4 pt-4">
+    <header class="flex items-center justify-between pb-4">
+      <div class="flex items-center gap-3">
+        <button id="back" type="button" data-action="back" class="hidden h-9 w-9 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800" aria-label="Back">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <button id="menu-button" type="button" data-action="toggle-menu" class="h-9 w-9 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800" aria-label="Menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <h1 id="title" class="text-xl font-bold">Today</h1>
+      </div>
+      <div class="flex items-center gap-1 text-zinc-500">
+        <button type="button" data-action="toggle-theme" class="h-9 w-9 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800" aria-label="Toggle theme">
+          <i id="theme-icon" class="fa-solid fa-moon"></i>
+        </button>
+        <button id="filter" type="button" data-action="toggle-filter" class="h-9 w-9 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800" aria-label="Hide completed">
+          <i class="fa-solid fa-filter"></i>
+        </button>
+        <button type="button" data-action="go-today" class="h-9 w-9 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800" aria-label="Jump to today">
+          <i class="fa-regular fa-calendar-days"></i>
+        </button>
+      </div>
+    </header>
+
+    <div id="menu" class="hidden absolute z-30 mt-14 w-56 rounded-2xl border border-zinc-200 bg-white p-2 shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
+      <button type="button" data-action="open-backup" class="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800">
+        <i class="fa-solid fa-cloud-arrow-up text-indigo-500"></i>
+        Backup & Restore
+      </button>
+    </div>
+
+    <p id="error" class="mb-3 hidden rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-600 dark:bg-rose-950/40 dark:text-rose-300"></p>
+    <main id="view" class="flex-1 pb-28"></main>
+  </div>
+
+  <button id="fab" type="button" data-action="open-create" class="fixed bottom-24 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-2xl text-white shadow-lg" aria-label="Add habit">+</button>
+
+  <nav id="tabbar" class="fixed bottom-0 inset-x-0 border-t border-zinc-200 bg-white py-2 dark:border-zinc-800 dark:bg-zinc-900">
+    <div class="mx-auto grid max-w-md grid-cols-4 text-center text-xs">
+      <button type="button" data-action="switch-tab" data-tab="today" class="tab-button flex flex-col items-center gap-1">
+        <i class="fa-regular fa-calendar-check"></i><span>Today</span>
+      </button>
+      <button type="button" data-action="switch-tab" data-tab="habits" class="tab-button flex flex-col items-center gap-1">
+        <i class="fa-solid fa-shapes"></i><span>Habits</span>
+      </button>
+      <button type="button" data-action="switch-tab" data-tab="tasks" class="tab-button flex flex-col items-center gap-1">
+        <i class="fa-regular fa-square-check"></i><span>Tasks</span>
+      </button>
+      <button type="button" data-action="switch-tab" data-tab="statistics" class="tab-button flex flex-col items-center gap-1">
+        <i class="fa-solid fa-chart-simple"></i><span>Statistics</span>
+      </button>
+    </div>
+  </nav>
+
+  <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div class="w-full max-w-sm space-y-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+      <h2 class="text-lg font-bold">New habit or task</h2>
+      <input id="new-title" type="text" placeholder="Title" class="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+      <div class="grid grid-cols-2 gap-2">
+        <select id="new-type" class="rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+          <option value="boolean">Boolean</option>
+          <option value="numeric">Counter</option>
+          <option value="duration">Timer</option>
+        </select>
+        <input id="new-target" type="number" value="1" min="1" class="rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+      </div>
+      <input id="new-unit" type="text" placeholder="Unit, such as glasses" class="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+      <label class="flex items-center gap-2 text-sm">
+        <input id="new-is-task" type="checkbox">
+        One-off task
+      </label>
+      <div class="flex justify-end gap-2">
+        <button type="button" data-action="close-create" class="px-4 py-2 text-sm text-zinc-500">Cancel</button>
+        <button type="button" data-action="create-habit" class="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

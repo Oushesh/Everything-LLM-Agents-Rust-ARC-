@@ -1,3 +1,26 @@
+## Screen state
+
+```mermaid
+flowchart TD
+  store["HabitStore<br/>habits + logs"]
+  app["Screen state<br/>theme, tab, date, habit id"]
+
+  app --> today["Today"]
+  app --> habits["Habits"]
+  app --> tasks["Tasks"]
+  app --> stats["Statistics"]
+  app --> detail["Habit detail / Calendar"]
+  app --> backup["Backup and restore"]
+
+  today -->|"check, skip, add"| store
+  habits -->|"open a habit"| detail
+  tasks -->|"check a task"| store
+  detail -->|"mark a day or a vacation week"| store
+  stats -->|"read streaks and counts"| store
+  backup -->|"export or replace the database rows"| store
+  store -->|"cards, heatmap, stats"| app
+```
+
 ## Layout
 
 Cargo workspace: a library crate plus a binary crate.
@@ -41,8 +64,46 @@ flowchart LR
 
 The workspace `Cargo.toml` only lists members. `habit_server` depends on `habit_core` with a path dependency. A browser calls `/api/today`, `/api/habits`, `/api/habits/{id}/status`, or `/api/statistics`. The handler in `main.rs` calls `HabitStore`, which reads and writes SQLite. `GET /` returns the page that then calls those routes.
 
-## Phase 1 (WebApp): 
+
+
+## State Machine Backend:
+
+- flowchart TD
+
+    store["HabitStore<br/>habits + logs"]
+
+    app["Screen state<br/>theme, tab, date, habit id"]
+
+    app --> today["Today"]
+
+    app --> habits["Habits"]
+
+    app --> tasks["Tasks"]
+
+    app --> stats["Statistics"]
+
+    app --> detail["Habit detail / Calendar"]
+
+    app --> backup["Backup and restore"]
+
+    today -->|"check, skip, add"| store
+
+    habits -->|"open a habit"| detail
+
+    tasks -->|"check a task"| store
+
+    detail -->|"mark a day or a vacation week"| store
+
+    stats -->|"read streaks and counts"| store
+
+    backup -->|"export or replace the database rows"| store
+
+    store -->|"cards, heatmap, stats"| app
+
+
+
+## Phase 1 (WebApp):
+
    Use Axum in habit_server
-   
 
 ## Phase 2 ():

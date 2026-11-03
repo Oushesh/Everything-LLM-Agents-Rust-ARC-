@@ -1,0 +1,12 @@
+{
+  "name": "habitgrip-frontend",
+  "private": true,
+  "scripts": {
+    "check": "tsc --noEmit",
+    "build": "esbuild src/main.ts --bundle --outfile=../static/app.js --format=iife --target=es2020 --banner:js=\"/* Generated from frontend/src. Edit the TypeScript, then run npm run build. */\""
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.6.3"
+  }
+}
