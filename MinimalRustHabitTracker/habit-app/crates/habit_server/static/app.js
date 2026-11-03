@@ -2,7 +2,8 @@
 "use strict";
 (() => {
   // src/views/backup.ts
-  function renderBackup(root) {
+  function renderBackup(app, root) {
+    const daily = app.state.settings?.daily_backup ?? false;
     root.innerHTML = `
     <div class="space-y-4">
       <p class="rounded-2xl bg-indigo-50 p-4 text-sm text-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-100">
@@ -16,6 +17,10 @@
         <span><span class="block font-medium">Restore from Backup</span><span class="text-xs text-zinc-400">Choose a JSON file from this app</span></span>
         <input id="restore-file" type="file" accept="application/json,.json" class="hidden">
         <i class="fa-solid fa-chevron-right text-zinc-400"></i>
+      </label>
+      <label class="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 text-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <span><span class="block font-medium">Daily auto backup</span><span class="text-xs text-zinc-400">Remember this choice on this server</span></span>
+        <input id="daily-backup" type="checkbox" ${daily ? "checked" : ""}>
       </label>
     </div>`;
   }
@@ -34,7 +39,7 @@
     const bodies = {
       overview: detailOverview(app, detail),
       calendar: detailCalendar(app, detail),
-      statistics: detailStats(detail),
+      statistics: detailStats(app),
       reminders: detailNotes(app, detail)
     };
     root.innerHTML = `<div class="mb-4 flex gap-1 overflow-x-auto">${tabs}</div>${bodies[app.state.detailTab]}`;
@@ -97,25 +102,45 @@
     if (status === "in_progress") return "bg-sky-100 text-sky-700";
     return "bg-white text-zinc-600 dark:bg-zinc-900";
   }
-  function detailStats(detail) {
-    const completed = detail.days.filter((day) => day.status === "completed").length;
+  function detailStats(app) {
+    const stats = app.state.habitStats;
+    if (!stats) return `<p class="py-16 text-center text-sm text-zinc-400">Statistics are still loading.</p>`;
+    const tile = (value, label) => `
+    <div class="rounded-xl bg-zinc-50 p-3 text-center dark:bg-zinc-800/50">
+      <div class="text-lg font-bold text-indigo-500">${value}</div>
+      <p class="text-xs text-zinc-400">${label}</p>
+    </div>`;
     return `
-    <section class="grid grid-cols-2 gap-3">
-      <div class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"><div class="text-2xl font-bold text-indigo-500">${detail.current_streak}</div><p class="text-xs text-zinc-400">Current streak</p></div>
-      <div class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"><div class="text-2xl font-bold text-indigo-500">${detail.best_streak}</div><p class="text-xs text-zinc-400">Best streak</p></div>
-      <div class="col-span-2 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"><div class="text-2xl font-bold text-indigo-500">${completed}</div><p class="text-xs text-zinc-400">Completed days this month</p></div>
+    <section class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"><div class="text-2xl font-bold text-indigo-500">${stats.current_streak}</div><p class="text-xs text-zinc-400">Current streak</p></div>
+        <div class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"><div class="text-2xl font-bold text-indigo-500">${stats.best_streak}</div><p class="text-xs text-zinc-400">Best streak</p></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        ${tile(stats.completions_week, "This week")}
+        ${tile(stats.completions_month, "This month")}
+        ${tile(stats.completions_year, "This year")}
+        ${tile(stats.completions_all_time, "All time")}
+      </div>
     </section>`;
   }
   function detailNotes(app, detail) {
     const selected = detail.days.find((day) => day.date === app.state.selectedDay) ?? detail.days[0];
     if (!selected) return `<p class="py-16 text-center text-sm text-zinc-400">This month has no days.</p>`;
+    const reminder = app.state.reminder;
     const notes = detail.days.filter((day) => day.has_note).map((day) => `<li>${app.esc(day.date)}</li>`).join("");
     return `
     <section class="space-y-3 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <h3 class="text-sm font-semibold">Note for ${selected.date}</h3>
-      <p class="text-xs text-zinc-400">A note stays on that day. This screen does not schedule a notification.</p>
+      <h3 class="text-sm font-semibold">Reminder</h3>
+      <label class="flex items-center gap-2 text-sm">
+        <input id="reminder-enabled" type="checkbox" ${reminder?.enabled ? "checked" : ""}>
+        Remind me
+      </label>
+      <input id="reminder-time" type="time" value="${app.esc(reminder?.remind_at ?? "09:00")}" class="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+      <button type="button" data-action="save-reminder" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Save reminder</button>
+      <h3 class="pt-2 text-sm font-semibold">Note for ${selected.date}</h3>
       <input id="day-note" type="text" placeholder="Write a note" class="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
-      <button type="button" data-action="save-note" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Save note</button>
+      <button type="button" data-action="save-note" class="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">Save note</button>
       <ul class="list-disc pl-5 text-sm text-zinc-500">${notes || "<li>No notes this month.</li>"}</ul>
     </section>`;
   }
@@ -294,6 +319,9 @@
         backupOpen: false,
         todayItems: [],
         stats: null,
+        habitStats: null,
+        reminder: null,
+        settings: null,
         detail: null,
         error: ""
       };
@@ -321,6 +349,7 @@
       if (!(target instanceof HTMLInputElement)) return;
       const file = target.files?.[0];
       if (target.id === "restore-file" && file) void this.restoreFile(file);
+      if (target.id === "daily-backup") void this.saveSettings(target.checked);
     }
     async onAction(target) {
       const action = target.dataset.action;
@@ -420,16 +449,33 @@
         await this.saveNote();
         return;
       }
+      if (action === "save-reminder") {
+        await this.saveReminder();
+        return;
+      }
       if (action === "download-backup") await this.downloadBackup();
     }
     async refresh() {
       try {
         const todayItems = await this.api(`/api/today?date=${this.state.date}`);
         const stats = await this.api("/api/statistics");
-        const detail = this.state.habitId ? await this.api(`/api/habits/${this.state.habitId}/month?month=${this.state.month}`) : null;
+        const settings = await this.api("/api/settings");
+        let detail = null;
+        let habitStats = null;
+        let reminder = null;
+        if (this.state.habitId) {
+          [detail, habitStats, reminder] = await Promise.all([
+            this.api(`/api/habits/${this.state.habitId}/month?month=${this.state.month}`),
+            this.api(`/api/habits/${this.state.habitId}/statistics`),
+            this.api(`/api/habits/${this.state.habitId}/reminders`)
+          ]);
+        }
         this.state.todayItems = todayItems;
         this.state.stats = stats;
+        this.state.settings = settings;
         this.state.detail = detail;
+        this.state.habitStats = habitStats;
+        this.state.reminder = reminder;
         this.state.error = "";
       } catch {
         this.state.error = "The server could not load this screen.";
@@ -460,7 +506,7 @@
         button.className = `tab-button flex flex-col items-center gap-1 ${active ? "font-semibold text-indigo-600 dark:text-indigo-400" : "text-zinc-400"}`;
       });
       const view = element("view");
-      if (this.state.backupOpen) return renderBackup(view);
+      if (this.state.backupOpen) return renderBackup(this, view);
       if (this.state.habitId) return renderDetail(this, view);
       if (this.state.tab === "habits") return renderHabits(this, view);
       if (this.state.tab === "tasks") return renderTasks(this, view);
@@ -559,6 +605,36 @@
         await this.refresh();
       } catch {
         this.state.error = "The vacation week could not be saved.";
+        this.render();
+      }
+    }
+    async saveReminder() {
+      if (!this.state.habitId) return;
+      const enabled = document.getElementById("reminder-enabled");
+      const time = document.getElementById("reminder-time");
+      if (!(enabled instanceof HTMLInputElement) || !(time instanceof HTMLInputElement)) return;
+      try {
+        await this.api(`/api/habits/${this.state.habitId}/reminders`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled: enabled.checked, remind_at: time.value || "09:00" })
+        });
+        await this.refresh();
+      } catch {
+        this.state.error = "The reminder could not be saved.";
+        this.render();
+      }
+    }
+    async saveSettings(dailyBackup) {
+      try {
+        await this.api("/api/settings", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ daily_backup: dailyBackup })
+        });
+        await this.refresh();
+      } catch {
+        this.state.error = "The backup setting could not be saved.";
         this.render();
       }
     }

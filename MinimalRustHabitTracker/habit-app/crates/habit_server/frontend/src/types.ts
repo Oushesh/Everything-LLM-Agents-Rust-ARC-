@@ -79,8 +79,31 @@ export interface AppState {
   backupOpen: boolean;
   todayItems: HabitCard[];
   stats: GlobalStats | null;
+  habitStats: HabitStats | null;
+  reminder: HabitReminder | null;
+  settings: AppSettings | null;
   detail: HabitMonth | null;
   error: string;
+}
+
+export interface HabitStats {
+  habit_id: string;
+  current_streak: number;
+  best_streak: number;
+  completions_week: number;
+  completions_month: number;
+  completions_year: number;
+  completions_all_time: number;
+}
+
+export interface HabitReminder {
+  habit_id: string;
+  enabled: boolean;
+  remind_at: string;
+}
+
+export interface AppSettings {
+  daily_backup: boolean;
 }
 
 export function isTab(value: string | undefined): value is Tab {

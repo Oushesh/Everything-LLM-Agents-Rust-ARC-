@@ -11,10 +11,13 @@ import {
   isTab,
   type AppState,
   type BackupSnapshot,
+  type AppSettings,
   type GlobalStats,
   type Habit,
   type HabitCard,
   type HabitMonth,
+  type HabitReminder,
+  type HabitStats,
   type HabitType,
   type LogStatus,
 } from "./types";
@@ -40,6 +43,9 @@ export class HabitApp {
       backupOpen: false,
       todayItems: [],
       stats: null,
+      habitStats: null,
+      reminder: null,
+      settings: null,
       detail: null,
       error: "",
     };
@@ -70,6 +76,7 @@ export class HabitApp {
     if (!(target instanceof HTMLInputElement)) return;
     const file = target.files?.[0];
     if (target.id === "restore-file" && file) void this.restoreFile(file);
+    if (target.id === "daily-backup") void this.saveSettings(target.checked);
   }
 
   async onAction(target: HTMLElement): Promise<void> {
@@ -170,6 +177,10 @@ export class HabitApp {
       await this.saveNote();
       return;
     }
+    if (action === "save-reminder") {
+      await this.saveReminder();
+      return;
+    }
     if (action === "download-backup") await this.downloadBackup();
   }
 
@@ -177,12 +188,23 @@ export class HabitApp {
     try {
       const todayItems = await this.api<HabitCard[]>(`/api/today?date=${this.state.date}`);
       const stats = await this.api<GlobalStats>("/api/statistics");
-      const detail = this.state.habitId
-        ? await this.api<HabitMonth>(`/api/habits/${this.state.habitId}/month?month=${this.state.month}`)
-        : null;
+      const settings = await this.api<AppSettings>("/api/settings");
+      let detail: HabitMonth | null = null;
+      let habitStats: HabitStats | null = null;
+      let reminder: HabitReminder | null = null;
+      if (this.state.habitId) {
+        [detail, habitStats, reminder] = await Promise.all([
+          this.api<HabitMonth>(`/api/habits/${this.state.habitId}/month?month=${this.state.month}`),
+          this.api<HabitStats>(`/api/habits/${this.state.habitId}/statistics`),
+          this.api<HabitReminder>(`/api/habits/${this.state.habitId}/reminders`),
+        ]);
+      }
       this.state.todayItems = todayItems;
       this.state.stats = stats;
+      this.state.settings = settings;
       this.state.detail = detail;
+      this.state.habitStats = habitStats;
+      this.state.reminder = reminder;
       this.state.error = "";
     } catch {
       this.state.error = "The server could not load this screen.";
@@ -216,7 +238,7 @@ export class HabitApp {
     });
 
     const view = element("view");
-    if (this.state.backupOpen) return renderBackup(view);
+    if (this.state.backupOpen) return renderBackup(this, view);
     if (this.state.habitId) return renderDetail(this, view);
     if (this.state.tab === "habits") return renderHabits(this, view);
     if (this.state.tab === "tasks") return renderTasks(this, view);
@@ -323,6 +345,38 @@ export class HabitApp {
       await this.refresh();
     } catch {
       this.state.error = "The vacation week could not be saved.";
+      this.render();
+    }
+  }
+
+  async saveReminder(): Promise<void> {
+    if (!this.state.habitId) return;
+    const enabled = document.getElementById("reminder-enabled");
+    const time = document.getElementById("reminder-time");
+    if (!(enabled instanceof HTMLInputElement) || !(time instanceof HTMLInputElement)) return;
+    try {
+      await this.api(`/api/habits/${this.state.habitId}/reminders`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: enabled.checked, remind_at: time.value || "09:00" }),
+      });
+      await this.refresh();
+    } catch {
+      this.state.error = "The reminder could not be saved.";
+      this.render();
+    }
+  }
+
+  async saveSettings(dailyBackup: boolean): Promise<void> {
+    try {
+      await this.api("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ daily_backup: dailyBackup }),
+      });
+      await this.refresh();
+    } catch {
+      this.state.error = "The backup setting could not be saved.";
       this.render();
     }
   }
