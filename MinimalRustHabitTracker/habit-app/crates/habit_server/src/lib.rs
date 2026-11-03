@@ -44,6 +44,12 @@ pub fn app(store: HabitStore) -> Router {
         .route("/api/settings", get(routes::settings::get_settings).put(routes::settings::set_settings))
         .route("/api/backup", get(routes::backup::export_backup))
         .route("/api/backup/restore", post(routes::backup::restore_backup))
+        .route(
+            "/api/backups",
+            get(routes::backup::list_stored_backups).post(routes::backup::create_stored_backup),
+        )
+        .route("/api/backups/restore", post(routes::backup::restore_stored_backup))
+        .route("/api/reminders", get(routes::detail::list_reminders))
         .with_state(store);
 
     Router::new()

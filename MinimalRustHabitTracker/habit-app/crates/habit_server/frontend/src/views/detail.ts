@@ -120,6 +120,13 @@ function detailStats(app: HabitApp): string {
     </section>`;
 }
 
+function reminderNote(): string {
+  if (!("Notification" in window)) return "This browser does not support notifications, so the reminder is only saved.";
+  if (Notification.permission === "denied") return "Notifications are blocked in this browser, so the reminder is only saved. Allow them in the browser settings to hear it.";
+  if (Notification.permission === "granted") return "While HabitGrip stays open, a notification appears at this time on scheduled days, once a day, until the habit is done.";
+  return "Saving an enabled reminder asks the browser for notification permission.";
+}
+
 function detailNotes(app: HabitApp, detail: HabitMonth): string {
   const selected = detail.days.find((day) => day.date === app.state.selectedDay) ?? detail.days[0];
   if (!selected) return `<p class="py-16 text-center text-sm text-zinc-400">This month has no days.</p>`;
@@ -134,6 +141,7 @@ function detailNotes(app: HabitApp, detail: HabitMonth): string {
       </label>
       <input id="reminder-time" type="time" value="${app.esc(reminder?.remind_at ?? "09:00")}" class="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
       <button type="button" data-action="save-reminder" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Save reminder</button>
+      <p class="text-xs text-zinc-400">${reminderNote()}</p>
       <h3 class="pt-2 text-sm font-semibold">Note for ${selected.date}</h3>
       <input id="day-note" type="text" placeholder="Write a note" value="${app.esc(selected.note ?? "")}" class="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
       <button type="button" data-action="save-note" class="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">Save note</button>

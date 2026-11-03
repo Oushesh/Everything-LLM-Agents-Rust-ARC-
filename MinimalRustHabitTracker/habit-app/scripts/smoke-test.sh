@@ -91,10 +91,26 @@ CODE="$(curl -s -o /dev/null -w '%{http_code}' -X PUT "$BASE/api/settings" \
   -H 'Content-Type: application/json' -d '{"daily_backup":true}')"
 expect_status 200 "$CODE" "PUT settings"
 
-echo "8. backup downloads and restores"
+echo "8. backup downloads and restores, including the reminder"
 curl -s "$BASE/api/backup" > "$WORK/backup.json" || fail "GET /api/backup"
+grep -q "07:30" "$WORK/backup.json" || fail "backup file did not include the reminder: $(cat "$WORK/backup.json")"
+grep -q "daily_backup" "$WORK/backup.json" || fail "backup file did not include settings: $(cat "$WORK/backup.json")"
 CODE="$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/api/backup/restore" \
   -H 'Content-Type: application/json' --data @"$WORK/backup.json")"
 expect_status 200 "$CODE" "POST /api/backup/restore"
+
+echo "9. enabled reminders are listed for the notification checker"
+REMINDERS="$(curl -s "$BASE/api/reminders")"
+printf '%s' "$REMINDERS" | grep -q "07:30" || fail "reminders list missing 07:30: $REMINDERS"
+
+echo "10. server-kept backups: create, list, restore by name"
+CODE="$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/api/backups")"
+expect_status 200 "$CODE" "POST /api/backups"
+LIST="$(curl -s "$BASE/api/backups")"
+printf '%s' "$LIST" | grep -q "backup-" || fail "stored backup list was empty: $LIST"
+NAME="$(printf '%s' "$LIST" | sed -n 's/.*"name":"\([^"]*\)".*/\1/p' | head -n1)"
+CODE="$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/api/backups/restore" \
+  -H 'Content-Type: application/json' -d "{\"name\":\"$NAME\"}")"
+expect_status 200 "$CODE" "POST /api/backups/restore"
 
 echo "PASS: every screen's API answered as the frontend expects."

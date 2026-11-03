@@ -4,13 +4,21 @@
   // src/views/backup.ts
   function renderBackup(app, root) {
     const daily = app.state.settings?.daily_backup ?? false;
+    const stored = app.state.storedBackups.map((backup) => `
+    <div class="flex w-full items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <span>
+        <span class="block text-sm font-medium">${app.esc(backup.name.replace(/^backup-|\.json$/g, ""))}</span>
+        <span class="text-xs text-zinc-400">${Math.max(1, Math.round(backup.size_bytes / 1024))} KB \xB7 on this server</span>
+      </span>
+      <button type="button" data-action="restore-server-backup" data-name="${app.esc(backup.name)}" class="rounded-xl bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">Restore</button>
+    </div>`).join("");
     root.innerHTML = `
     <div class="space-y-4">
       <p class="rounded-2xl bg-indigo-50 p-4 text-sm text-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-100">
-        Create Backup downloads your habits, tasks, and logs as JSON. Restore replaces what is stored on this server with that file. Nothing is uploaded.
+        Backups now include your habits, tasks, logs, reminders, and the daily-backup setting. Nothing is uploaded anywhere.
       </p>
       <button type="button" data-action="download-backup" class="flex w-full items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 text-left shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <span><span class="block font-medium">Create Backup</span><span class="text-xs text-zinc-400">Download a new checkpoint</span></span>
+        <span><span class="block font-medium">Create Backup</span><span class="text-xs text-zinc-400">Download a new checkpoint as a file</span></span>
         <i class="fa-solid fa-chevron-right text-zinc-400"></i>
       </button>
       <label class="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 text-left shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
@@ -18,8 +26,16 @@
         <input id="restore-file" type="file" accept="application/json,.json" class="hidden">
         <i class="fa-solid fa-chevron-right text-zinc-400"></i>
       </label>
+      <button type="button" data-action="create-server-backup" class="flex w-full items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 text-left shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <span><span class="block font-medium">Save backup on this server</span><span class="text-xs text-zinc-400">Kept in the backups folder, newest 30</span></span>
+        <i class="fa-solid fa-server text-zinc-400"></i>
+      </button>
+      <div class="space-y-2">
+        <h3 class="text-xs font-bold uppercase text-zinc-400">Backups on this server</h3>
+        ${stored || `<p class="text-sm text-zinc-400">None yet. Save one above, or turn on daily backups.</p>`}
+      </div>
       <label class="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 text-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <span><span class="block font-medium">Daily auto backup</span><span class="text-xs text-zinc-400">Remember this choice on this server</span></span>
+        <span><span class="block font-medium">Daily auto backups</span><span class="text-xs text-zinc-400">One backup a day is written the first time this screen loads that day</span></span>
         <input id="daily-backup" type="checkbox" ${daily ? "checked" : ""}>
       </label>
     </div>`;
@@ -138,6 +154,12 @@
       </div>
     </section>`;
   }
+  function reminderNote() {
+    if (!("Notification" in window)) return "This browser does not support notifications, so the reminder is only saved.";
+    if (Notification.permission === "denied") return "Notifications are blocked in this browser, so the reminder is only saved. Allow them in the browser settings to hear it.";
+    if (Notification.permission === "granted") return "While HabitGrip stays open, a notification appears at this time on scheduled days, once a day, until the habit is done.";
+    return "Saving an enabled reminder asks the browser for notification permission.";
+  }
   function detailNotes(app, detail) {
     const selected = detail.days.find((day) => day.date === app.state.selectedDay) ?? detail.days[0];
     if (!selected) return `<p class="py-16 text-center text-sm text-zinc-400">This month has no days.</p>`;
@@ -152,6 +174,7 @@
       </label>
       <input id="reminder-time" type="time" value="${app.esc(reminder?.remind_at ?? "09:00")}" class="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
       <button type="button" data-action="save-reminder" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Save reminder</button>
+      <p class="text-xs text-zinc-400">${reminderNote()}</p>
       <h3 class="pt-2 text-sm font-semibold">Note for ${selected.date}</h3>
       <input id="day-note" type="text" placeholder="Write a note" value="${app.esc(selected.note ?? "")}" class="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
       <button type="button" data-action="save-note" class="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">Save note</button>
@@ -160,10 +183,16 @@
   }
 
   // src/views/habits.ts
+  var WEEKDAY_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
+  var WEEKDAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   function renderHabits(app, root) {
-    const habits = app.state.todayItems.filter((item) => !item.habit.is_task);
+    const habits = app.state.todayItems.filter((item) => {
+      if (item.habit.is_task) return false;
+      if (app.state.hideCompleted && item.today_status === "completed") return false;
+      return true;
+    });
     if (!habits.length) {
-      root.innerHTML = `<p class="py-16 text-center text-sm text-zinc-400">Recurring habits show a six-month grid here.</p>`;
+      root.innerHTML = `<p class="py-16 text-center text-sm text-zinc-400">${app.state.hideCompleted ? "Every habit is completed today. Tap the filter again to show them." : "Recurring habits show a six-month grid here."}</p>`;
       return;
     }
     root.innerHTML = `<div class="space-y-4">${habits.map((item) => habitGrid(app, item)).join("")}</div>`;
@@ -176,21 +205,28 @@
     const byDate = new Map(points);
     const first = points.length ? app.parseISO(points[0][0]) : /* @__PURE__ */ new Date();
     const last = points.length ? app.parseISO(points[points.length - 1][0]) : first;
-    const cursor = new Date(first);
-    cursor.setDate(cursor.getDate() - (cursor.getDay() + 6) % 7);
+    const scheduled = Array.isArray(habit.schedule_days) && habit.schedule_days.length ? [...habit.schedule_days].sort((a, b) => a - b) : [0, 1, 2, 3, 4, 5, 6];
+    const monday = new Date(first);
+    monday.setDate(monday.getDate() - (monday.getDay() + 6) % 7);
     const columns = [];
-    while (cursor <= last) {
+    const week = new Date(monday);
+    while (week <= last) {
       const cells = [];
       let label = "";
-      for (let row = 0; row < 7; row += 1) {
-        const iso = app.formatISO(cursor);
-        if (cursor.getDate() === 1) label = cursor.toLocaleDateString("en-US", { month: "short" });
-        const intensity = byDate.has(iso) ? byDate.get(iso) : null;
+      for (const weekday of scheduled) {
+        const day = new Date(week);
+        day.setDate(week.getDate() + weekday);
+        if (day.getDate() === 1) label = day.toLocaleDateString("en-US", { month: "short" });
+        const iso = app.formatISO(day);
+        const inRange = day >= first && day <= last;
+        const intensity = inRange && byDate.has(iso) ? byDate.get(iso) : null;
         cells.push(`<i class="block h-2.5 w-2.5 rounded-[2px]" style="background:${heatColor(intensity, color)}" title="${iso}"></i>`);
-        cursor.setDate(cursor.getDate() + 1);
       }
       columns.push(`<div class="flex flex-col gap-[2px]"><span class="h-3 text-[9px] text-zinc-400">${label}</span>${cells.join("")}</div>`);
+      week.setDate(week.getDate() + 7);
     }
+    const rowLabels = scheduled.map((weekday) => `<span class="flex h-2.5 items-center">${WEEKDAY_LETTERS[weekday]}</span>`).join("");
+    const scheduleText = scheduled.length === 7 ? "Every day" : scheduled.map((day) => WEEKDAY_NAMES[day]).join(" \xB7 ");
     return `
     <article data-action="open-habit" data-id="${app.esc(habit.id)}" class="cursor-pointer space-y-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
       <div class="flex items-center justify-between">
@@ -199,11 +235,12 @@
           <div>
             <h4 class="text-sm font-semibold">${app.esc(habit.title)}</h4>
             <p class="text-xs text-amber-500">${dto.current_streak} day streak</p>
+            <p class="text-[10px] text-zinc-400">${app.esc(scheduleText)}</p>
           </div>
         </div>
       </div>
       <div class="flex gap-2">
-        <div class="grid grid-rows-7 gap-[2px] pt-4 text-[9px] leading-[10px] text-zinc-400"><span>M</span><span></span><span>W</span><span></span><span>F</span><span></span><span></span></div>
+        <div class="flex flex-col gap-[2px] pt-4 text-[9px] leading-[10px] text-zinc-400">${rowLabels}</div>
         <div class="flex gap-[2px] overflow-x-auto">${columns.join("")}</div>
       </div>
     </article>`;
@@ -362,6 +399,8 @@
         stats: null,
         habitStats: null,
         reminder: null,
+        reminders: [],
+        storedBackups: [],
         settings: null,
         detail: null,
         error: ""
@@ -372,6 +411,38 @@
       document.body.addEventListener("click", (event) => this.onClick(event));
       document.body.addEventListener("change", (event) => this.onChange(event));
       void this.refresh();
+      window.setInterval(() => this.checkReminders(), 3e4);
+    }
+    async requestNotificationPermission() {
+      if (!("Notification" in window)) return;
+      if (Notification.permission === "default") {
+        try {
+          await Notification.requestPermission();
+        } catch {
+        }
+      }
+    }
+    checkReminders() {
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
+      const now = /* @__PURE__ */ new Date();
+      const today = formatISO(now);
+      if (this.state.date !== today) return;
+      const hhmm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const weekday = (now.getDay() + 6) % 7;
+      for (const reminder of this.state.reminders) {
+        if (reminder.remind_at !== hhmm) continue;
+        const item = this.state.todayItems.find((entry) => entry.habit.id === reminder.habit_id);
+        if (!item || item.habit.is_task) continue;
+        const days = item.habit.schedule_days;
+        if (Array.isArray(days) && days.length && !days.includes(weekday)) continue;
+        if (item.today_status === "completed") continue;
+        const key = `habitgrip-reminded-${reminder.habit_id}-${today}`;
+        if (localStorage.getItem(key)) continue;
+        localStorage.setItem(key, "1");
+        new Notification(`Time for ${item.habit.title}`, {
+          body: item.habit.target_value > 1 ? `Target: ${item.display_progress}` : "Tap to open HabitGrip and check it in."
+        });
+      }
     }
     onClick(event) {
       if (!(event.target instanceof Element)) return;
@@ -504,12 +575,16 @@
         return;
       }
       if (action === "download-backup") await this.downloadBackup();
+      if (action === "create-server-backup") await this.createServerBackup();
+      if (action === "restore-server-backup" && target.dataset.name) await this.restoreServerBackup(target.dataset.name);
     }
     async refresh() {
       try {
         const todayItems = await this.api(`/api/today?date=${this.state.date}`);
         const stats = await this.api("/api/statistics");
         const settings = await this.api("/api/settings");
+        const storedBackups = await this.api("/api/backups");
+        const reminders = await this.api("/api/reminders");
         let detail = null;
         let habitStats = null;
         let reminder = null;
@@ -523,6 +598,8 @@
         this.state.todayItems = todayItems;
         this.state.stats = stats;
         this.state.settings = settings;
+        this.state.storedBackups = storedBackups;
+        this.state.reminders = reminders;
         this.state.detail = detail;
         this.state.habitStats = habitStats;
         this.state.reminder = reminder;
@@ -688,6 +765,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ enabled: enabled.checked, remind_at: time.value || "09:00" })
         });
+        if (enabled.checked) await this.requestNotificationPermission();
         await this.refresh();
       } catch {
         this.state.error = "The reminder could not be saved.";
@@ -738,6 +816,28 @@
       link.download = "habitgrip-backup.json";
       link.click();
       URL.revokeObjectURL(link.href);
+    }
+    async createServerBackup() {
+      try {
+        await this.api("/api/backups", { method: "POST" });
+        await this.refresh();
+      } catch {
+        this.state.error = "The server backup could not be created.";
+        this.render();
+      }
+    }
+    async restoreServerBackup(name) {
+      try {
+        await this.api("/api/backups/restore", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name })
+        });
+        await this.refresh();
+      } catch {
+        this.state.error = "That server backup could not be restored.";
+        this.render();
+      }
     }
     async restoreFile(file) {
       try {

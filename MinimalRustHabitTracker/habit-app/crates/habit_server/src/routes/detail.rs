@@ -41,6 +41,15 @@ pub async fn get_habit_statistics(
     }
 }
 
+pub async fn list_reminders(
+    State(store): State<HabitStore>,
+) -> Result<Json<Vec<HabitReminder>>, StatusCode> {
+    store
+        .list_enabled_reminders()
+        .map(Json)
+        .map_err(|err| super::log_error("list_reminders", err))
+}
+
 pub async fn get_reminder(
     State(store): State<HabitStore>,
     Path(id): Path<String>,

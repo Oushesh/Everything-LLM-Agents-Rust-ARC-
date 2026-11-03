@@ -67,6 +67,13 @@ export interface BackupLog {
 export interface BackupSnapshot {
   habits: Habit[];
   logs: BackupLog[];
+  reminders?: HabitReminder[];
+  settings?: AppSettings | null;
+}
+
+export interface StoredBackup {
+  name: string;
+  size_bytes: number;
 }
 
 export interface AppState {
@@ -84,6 +91,8 @@ export interface AppState {
   stats: GlobalStats | null;
   habitStats: HabitStats | null;
   reminder: HabitReminder | null;
+  reminders: HabitReminder[];
+  storedBackups: StoredBackup[];
   settings: AppSettings | null;
   detail: HabitMonth | null;
   error: string;

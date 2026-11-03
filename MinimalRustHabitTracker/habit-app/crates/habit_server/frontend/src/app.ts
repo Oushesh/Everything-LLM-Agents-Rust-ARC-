@@ -18,6 +18,7 @@ import {
   type HabitMonth,
   type HabitReminder,
   type HabitStats,
+  type StoredBackup,
   type HabitType,
   type LogStatus,
 } from "./types";
@@ -45,6 +46,8 @@ export class HabitApp {
       stats: null,
       habitStats: null,
       reminder: null,
+      reminders: [],
+      storedBackups: [],
       settings: null,
       detail: null,
       error: "",
@@ -56,6 +59,43 @@ export class HabitApp {
     document.body.addEventListener("click", (event) => this.onClick(event));
     document.body.addEventListener("change", (event) => this.onChange(event));
     void this.refresh();
+    window.setInterval(() => this.checkReminders(), 30_000);
+  }
+
+  async requestNotificationPermission(): Promise<void> {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "default") {
+      try {
+        await Notification.requestPermission();
+      } catch {
+        // The browser refused; reminders stay saved and the tab explains why.
+      }
+    }
+  }
+
+  checkReminders(): void {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    const now = new Date();
+    const today = formatISO(now);
+    if (this.state.date !== today) return;
+    const hhmm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    const weekday = (now.getDay() + 6) % 7;
+    for (const reminder of this.state.reminders) {
+      if (reminder.remind_at !== hhmm) continue;
+      const item = this.state.todayItems.find((entry) => entry.habit.id === reminder.habit_id);
+      if (!item || item.habit.is_task) continue;
+      const days = item.habit.schedule_days;
+      if (Array.isArray(days) && days.length && !days.includes(weekday)) continue;
+      if (item.today_status === "completed") continue;
+      const key = `habitgrip-reminded-${reminder.habit_id}-${today}`;
+      if (localStorage.getItem(key)) continue;
+      localStorage.setItem(key, "1");
+      new Notification(`Time for ${item.habit.title}`, {
+        body: item.habit.target_value > 1
+          ? `Target: ${item.display_progress}`
+          : "Tap to open HabitGrip and check it in.",
+      });
+    }
   }
 
   onClick(event: MouseEvent): void {
@@ -191,6 +231,8 @@ export class HabitApp {
       return;
     }
     if (action === "download-backup") await this.downloadBackup();
+    if (action === "create-server-backup") await this.createServerBackup();
+    if (action === "restore-server-backup" && target.dataset.name) await this.restoreServerBackup(target.dataset.name);
   }
 
   async refresh(): Promise<void> {
@@ -198,6 +240,8 @@ export class HabitApp {
       const todayItems = await this.api<HabitCard[]>(`/api/today?date=${this.state.date}`);
       const stats = await this.api<GlobalStats>("/api/statistics");
       const settings = await this.api<AppSettings>("/api/settings");
+      const storedBackups = await this.api<StoredBackup[]>("/api/backups");
+      const reminders = await this.api<HabitReminder[]>("/api/reminders");
       let detail: HabitMonth | null = null;
       let habitStats: HabitStats | null = null;
       let reminder: HabitReminder | null = null;
@@ -211,6 +255,8 @@ export class HabitApp {
       this.state.todayItems = todayItems;
       this.state.stats = stats;
       this.state.settings = settings;
+      this.state.storedBackups = storedBackups;
+      this.state.reminders = reminders;
       this.state.detail = detail;
       this.state.habitStats = habitStats;
       this.state.reminder = reminder;
@@ -392,6 +438,7 @@ export class HabitApp {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled: enabled.checked, remind_at: time.value || "09:00" }),
       });
+      if (enabled.checked) await this.requestNotificationPermission();
       await this.refresh();
     } catch {
       this.state.error = "The reminder could not be saved.";
@@ -451,6 +498,30 @@ export class HabitApp {
     link.download = "habitgrip-backup.json";
     link.click();
     URL.revokeObjectURL(link.href);
+  }
+
+  async createServerBackup(): Promise<void> {
+    try {
+      await this.api("/api/backups", { method: "POST" });
+      await this.refresh();
+    } catch {
+      this.state.error = "The server backup could not be created.";
+      this.render();
+    }
+  }
+
+  async restoreServerBackup(name: string): Promise<void> {
+    try {
+      await this.api("/api/backups/restore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      await this.refresh();
+    } catch {
+      this.state.error = "That server backup could not be restored.";
+      this.render();
+    }
   }
 
   async restoreFile(file: File): Promise<void> {
