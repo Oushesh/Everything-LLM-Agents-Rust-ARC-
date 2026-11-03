@@ -65,5 +65,4 @@
         claude -p "Use playwright MCP to audit http://localhost:3000 against ./docs/frontend_spec.md. Output summary to audit-report.json."; \
         kill $$PID
 
-   
 ## 
