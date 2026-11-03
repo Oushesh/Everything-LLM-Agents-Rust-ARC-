@@ -18,7 +18,13 @@ export function renderToday(app: HabitApp, root: HTMLElement): void {
       </button>`;
   }).join("");
 
-  const items = app.state.todayItems.filter((item) => !(app.state.hideCompleted && item.today_status === "completed"));
+  const weekday = (selected.getDay() + 6) % 7;
+  const items = app.state.todayItems.filter((item) => {
+    if (app.state.hideCompleted && item.today_status === "completed") return false;
+    if (item.habit.is_task) return true;
+    const days = item.habit.schedule_days;
+    return !Array.isArray(days) || days.length === 0 || days.includes(weekday);
+  });
   const cards = items.length
     ? items.map((item) => app.card(item, app.state.date)).join("")
     : `<p class="py-16 text-center text-sm text-zinc-400">Nothing for this day. Use + to add a habit or task.</p>`;

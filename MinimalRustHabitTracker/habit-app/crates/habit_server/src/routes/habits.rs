@@ -16,6 +16,7 @@ pub struct CreateHabitPayload {
     icon_name: Option<String>,
     color_hex: Option<String>,
     is_task: Option<bool>,
+    schedule_days: Option<Vec<u8>>,
 }
 
 pub async fn create_habit(
@@ -31,6 +32,7 @@ pub async fn create_habit(
             payload.icon_name,
             payload.color_hex,
             payload.is_task.unwrap_or(false),
+            payload.schedule_days,
         )
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 

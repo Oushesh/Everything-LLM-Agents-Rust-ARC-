@@ -14,6 +14,7 @@ export interface Habit {
   color_hex: string;
   is_task: boolean;
   created_at: string;
+  schedule_days: number[];
 }
 
 export interface HabitCard {

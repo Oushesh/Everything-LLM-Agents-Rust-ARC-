@@ -277,7 +277,13 @@
         <div class="text-sm">${day.getDate()}</div>
       </button>`;
     }).join("");
-    const items = app.state.todayItems.filter((item) => !(app.state.hideCompleted && item.today_status === "completed"));
+    const weekday = (selected.getDay() + 6) % 7;
+    const items = app.state.todayItems.filter((item) => {
+      if (app.state.hideCompleted && item.today_status === "completed") return false;
+      if (item.habit.is_task) return true;
+      const days2 = item.habit.schedule_days;
+      return !Array.isArray(days2) || days2.length === 0 || days2.includes(weekday);
+    });
     const cards = items.length ? items.map((item) => app.card(item, app.state.date)).join("") : `<p class="py-16 text-center text-sm text-zinc-400">Nothing for this day. Use + to add a habit or task.</p>`;
     root.innerHTML = `
     <div class="mb-4 flex justify-between rounded-2xl border border-zinc-200 bg-white p-2 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">${strip}</div>
@@ -427,6 +433,10 @@
         await this.cycle(target.dataset.id, target.dataset.date || this.state.date, target.dataset.status);
         return;
       }
+      if (action === "adjust" && target.dataset.id) {
+        await this.adjust(target.dataset.id, target.dataset.date || this.state.date, Number(target.dataset.delta) || 0);
+        return;
+      }
       if (action === "detail-tab" && isDetailTab(target.dataset.tab)) {
         this.state.detailTab = target.dataset.tab;
         this.render();
@@ -545,6 +555,7 @@
       const target = Number(input("new-target").value) || 1;
       const unit = input("new-unit").value.trim();
       const isTask = input("new-is-task").checked;
+      const scheduleDays = Array.from(document.querySelectorAll(".schedule-day:checked")).map((box) => Number(box.value)).filter((day) => Number.isInteger(day) && day >= 0 && day <= 6);
       try {
         await this.api("/api/habits", {
           method: "POST",
@@ -555,6 +566,7 @@
             target_value: target,
             unit: unit || null,
             is_task: isTask,
+            schedule_days: scheduleDays.length ? scheduleDays : [0, 1, 2, 3, 4, 5, 6],
             icon_name: isTask ? "list-check" : ICONS[habitType],
             color_hex: isTask ? "#3B82F6" : COLORS[habitType]
           })
@@ -567,6 +579,14 @@
         this.state.error = "The habit could not be saved.";
         this.render();
       }
+    }
+    async adjust(id, date, delta) {
+      const item = this.state.todayItems.find((entry) => entry.habit.id === id);
+      if (!item || delta === 0) return;
+      const target = item.habit.target_value || 1;
+      const next = Math.min(target, Math.max(0, item.current_value + delta));
+      const status = next >= target ? "completed" : next > 0 ? "in_progress" : "pending";
+      await this.setStatus(id, date, status, next, null);
     }
     async cycle(id, date, status) {
       const next = nextStatus(status);
@@ -682,8 +702,18 @@
       const habit = dto.habit;
       const color = /^#[0-9a-fA-F]{3,8}$/.test(habit.color_hex) ? habit.color_hex : "#6366f1";
       const icon = /^[a-z0-9-]+$/i.test(habit.icon_name) ? habit.icon_name : "check";
+      const cycleButton = `
+        <button type="button" data-action="cycle" data-id="${esc(habit.id)}" data-date="${esc(date)}" data-status="${esc(dto.today_status)}" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${statusClass(dto.today_status)}" aria-label="Change status">
+          ${statusIcon(dto.today_status)}
+        </button>`;
+      const step = habit.habit_type === "duration" ? 10 : 1;
+      const controls = habit.habit_type === "boolean" || habit.is_task ? cycleButton : `<div class="flex shrink-0 items-center gap-1">
+          <button type="button" data-action="adjust" data-id="${esc(habit.id)}" data-date="${esc(date)}" data-delta="${-step}" class="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-300 text-zinc-500 dark:border-zinc-700" aria-label="Decrease">\u2212</button>
+          <button type="button" data-action="adjust" data-id="${esc(habit.id)}" data-date="${esc(date)}" data-delta="${step}" class="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-300 text-zinc-500 dark:border-zinc-700" aria-label="Increase">+</button>
+          ${cycleButton}
+        </div>`;
       return `
-      <article data-action="open-habit" data-id="${esc(habit.id)}" class="flex cursor-pointer items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <article data-action="open-habit" data-id="${esc(habit.id)}" class="flex cursor-pointer items-center justify-between gap-2 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <div class="flex items-center gap-3">
           <div class="flex h-10 w-10 items-center justify-center rounded-full text-white" style="background:${color}">
             <i class="fa-solid fa-${icon}"></i>
@@ -693,9 +723,7 @@
             <p class="mt-0.5 text-xs text-zinc-400">${esc(dto.display_progress)}</p>
           </div>
         </div>
-        <button type="button" data-action="cycle" data-id="${esc(habit.id)}" data-date="${esc(date)}" data-status="${esc(dto.today_status)}" class="flex h-8 w-8 items-center justify-center rounded-full border ${statusClass(dto.today_status)}" aria-label="Change status">
-          ${statusIcon(dto.today_status)}
-        </button>
+        ${controls}
       </article>`;
     }
     statusIcon(status) {

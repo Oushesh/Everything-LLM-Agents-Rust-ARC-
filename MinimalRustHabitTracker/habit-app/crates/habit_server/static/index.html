@@ -78,6 +78,18 @@
         <input id="new-target" type="number" value="1" min="1" class="rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
       </div>
       <input id="new-unit" type="text" placeholder="Unit, such as glasses" class="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+      <div>
+        <p class="mb-2 text-xs font-medium text-zinc-500">Repeat on</p>
+        <div class="flex justify-between gap-1 text-center text-xs">
+          <label class="flex-1"><input type="checkbox" class="schedule-day peer sr-only" value="0" checked><span class="block rounded-lg bg-zinc-200 px-1 py-1.5 text-zinc-500 peer-checked:bg-indigo-600 peer-checked:text-white dark:bg-zinc-800">M</span></label>
+          <label class="flex-1"><input type="checkbox" class="schedule-day peer sr-only" value="1" checked><span class="block rounded-lg bg-zinc-200 px-1 py-1.5 text-zinc-500 peer-checked:bg-indigo-600 peer-checked:text-white dark:bg-zinc-800">T</span></label>
+          <label class="flex-1"><input type="checkbox" class="schedule-day peer sr-only" value="2" checked><span class="block rounded-lg bg-zinc-200 px-1 py-1.5 text-zinc-500 peer-checked:bg-indigo-600 peer-checked:text-white dark:bg-zinc-800">W</span></label>
+          <label class="flex-1"><input type="checkbox" class="schedule-day peer sr-only" value="3" checked><span class="block rounded-lg bg-zinc-200 px-1 py-1.5 text-zinc-500 peer-checked:bg-indigo-600 peer-checked:text-white dark:bg-zinc-800">T</span></label>
+          <label class="flex-1"><input type="checkbox" class="schedule-day peer sr-only" value="4" checked><span class="block rounded-lg bg-zinc-200 px-1 py-1.5 text-zinc-500 peer-checked:bg-indigo-600 peer-checked:text-white dark:bg-zinc-800">F</span></label>
+          <label class="flex-1"><input type="checkbox" class="schedule-day peer sr-only" value="5" checked><span class="block rounded-lg bg-zinc-200 px-1 py-1.5 text-zinc-500 peer-checked:bg-indigo-600 peer-checked:text-white dark:bg-zinc-800">S</span></label>
+          <label class="flex-1"><input type="checkbox" class="schedule-day peer sr-only" value="6" checked><span class="block rounded-lg bg-zinc-200 px-1 py-1.5 text-zinc-500 peer-checked:bg-indigo-600 peer-checked:text-white dark:bg-zinc-800">S</span></label>
+        </div>
+      </div>
       <label class="flex items-center gap-2 text-sm">
         <input id="new-is-task" type="checkbox">
         One-off task
