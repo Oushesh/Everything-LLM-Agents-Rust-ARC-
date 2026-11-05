@@ -1,30 +1,28 @@
-## Idea: How do add Agent Testing my code: 
+## Idea: How do add Agent Testing my code:
+
    https://dev.to/debs_obrien/letting-playwright-mcp-explore-your-site-and-write-your-tests-mf1
 
-## Rust: 
+## Rust:
+
    how do add it to rust?
    https://dev.to/debs_obrien/letting-playwright-mcp-explore-your-site-and-write-your-tests-mf1
- 
 
 ## Solution 01: Playwright MCP (@playwright/MCP) -> operates strictly over HTTP/Websocket.
+
    So its decoupled completely from the Backend language whether rust or next.js or any python backend like Django or FastApI
 
-   The architecture for this is as follows: 
+   The architecture for this is as follows:   
    ![](../screenshots_images/PlaywrightMCPArchitecture.png)
-   
+
    Playwright MCP --> Communicates with the Browser --> 
    Step 1: Register Playwright MCP in your Agent Client
-   
+
    npx @playwright/mcp@latest .
-   
+
    Option A: Claude Code CLI
-   
-   ```
-   bash
-   claude mcp add playwright -- npx -y @playwright/mcp@latest --isolated
-   ```
 
 ## Option B: Claude Code CLI
+
    Cursor/VS Code Client 
    usually mcp.json
    In your MCP configuration file (~/.cursor/mcp.json or .vscode/mcp.json):
@@ -41,45 +39,43 @@
     }
 ```
 
-## Rust Server: 
+## Rust Server:
+
    Terminal 1: Run your Rust Backend
    cargo run -p ...
 
    Terminal 2: Run the spec auditor 
-    
-    ```
-    bash: 
-    claude "Use the playwright MCP server to navigate to http://localhost:3000.
-    Read ./docs/SPEC.md. Verify that:
-    1. The dashboard navigation matches the routes defined in the spec.
-    2. Clicking 'New Habit' opens a modal with title and frequency fields.
-    3. Form submission sends a POST to /api/habits with correct payload.
-       Report any UI defects, console errors, or spec mismatches."
-       ```
 
-    Step 3: Integrating into "cargo test" /Makefile/Justfile
-    dev: 
-       # Makefile
-        cargo run & PID=$$!; \
-        sleep 2; \
-        claude -p "Use playwright MCP to audit http://localhost:3000 against ./docs/frontend_spec.md. Output summary to audit-report.json."; \
-        kill $$PID
+```
+```
+bash: 
+claude "Use the playwright MCP server to navigate to http://localhost:3000.
+Read ./docs/SPEC.md. Verify that:
+1. The dashboard navigation matches the routes defined in the spec.
+2. Clicking 'New Habit' opens a modal with title and frequency fields.
+3. Form submission sends a POST to /api/habits with correct payload.
+   Report any UI defects, console errors, or spec mismatches."
+   ```
 
+Step 3: Integrating into "cargo test" /Makefile/Justfile
+dev: 
+   # Makefile
+    cargo run & PID=$$!; \
+    sleep 2; \
+    claude -p "Use playwright MCP to audit http://localhost:3000 against ./docs/frontend_spec.md. Output summary to audit-report.json."; \
+    kill $$PID
+```
 
+## Agentic Testing:
 
-## Agentic Testing: 
    How would I setup this testing? 
 
    Easy Setup: The 2 Agent Handoff described is the right shape: 
 
-   1. Tester Agent (tests only, doesn't touch app code): runs playwright, produces a report -- failin test name, steps to reproduce, expected vs actual, a secreenshot and trace file for each failure, and the browser console/server errors.
+1. Tester Agent (tests only, doesn't touch app code): runs playwright, produces a report -- failin test name, steps to reproduce, expected vs actual, a secreenshot and trace file for each failure, and the browser console/server errors.
+2. You read the summary at a high level and hand the report to the fixer agent.
+3. Fixer agent changes the app, and the tester re-runs to prove it.
 
-   2. You read the summary at a high level and hand the report to the fixer agent.
-
-   3. Fixer agent changes the app, and the tester re-runs to prove it.
-
-
-   
 ## HabitGrip: concrete Playwright setup for this repo
 
 Playwright does not care that the backend is Rust. It drives a real browser
@@ -174,10 +170,9 @@ expected vs actual, screenshot and trace for each failure.
   write files only under e2e/ and a report at e2e/REPORT.md. Do not change
   app code. For each problem: what you clicked or ran, what you expected,
   what happened, and the screenshot/trace path."
-
 - You: skim `e2e/REPORT.md` at a high level.
 - Fixer agent prompt: "Fix the problems in e2e/REPORT.md. Do not edit the
-  tests." Then the tester re-runs to prove the fix.
+tests." Then the tester re-runs to prove the fix.
 
 Keep the rule strict: the tester never edits app code and the fixer never
 edits tests, otherwise a failure gets "fixed" by weakening the test.
