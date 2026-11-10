@@ -69,10 +69,7 @@
    pub (crate) use grammar::parse;
    pub (crate) use tokens::Token;
 
-
-   
    ```
-
    2. inside src/main.rs it requires zero change because parser.rs which in turn define the submodules of the folder parser/ takes care of everything.
 
 
@@ -89,14 +86,9 @@
         let tokens = parser::parse("alpha beta gamma");
         println!("Tokens: {:?}", tokens);
    }
-
-
    ```
 
    As a reference from ChatGPT here you go:
    parser.rs no longer contains the parsing algorithms directly. It registers the submodules and re-exports the items dont have to reach into nested subfolders.
-
-
-
 
     3. 
