@@ -1,5 +1,6 @@
 use rusqlite::{Connection, Result};
-
+use std::error::Error;
+use serde::Deserialize;
 
 //Strategy is every data you wanna send to this sql connection you can use struct 
 // and perform the CRUD operations in the talbe.
@@ -20,12 +21,13 @@ struct PersonRow {
 
 
 //Add other projects or other functions here where needed: 
-fn bulk_insert_csv(conn: &mut, csv_path: &str) -> std::result::Result<usize,Box<dyn Error>>
+/*
+fn bulk_insert_csv(conn: &mut rusqlite::Connection, csv_path: &str) -> Result<usize, Box<dyn Error>>
 {
     // 2. Open File with BufReader so we never load the whole CSV into RAM
-    let file = 
+    //
 }
-
+*/
 
 
 
