@@ -76,6 +76,7 @@ rust:
     }
 ```
 
-//That would give me sensor reading.
+//That would give me sensor reading and what not.
 
 
+// brew install --cask db-browser-for-sqlite. 

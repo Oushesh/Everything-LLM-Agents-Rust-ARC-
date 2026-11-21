@@ -1,0 +1,21 @@
+[
+    {
+        "device_id": "sensor-living-room",
+        "temperature": 22.4,
+        "humidity": 48.5,
+        "timestamp": "2026-11-20T14:30:00Z",
+        "unit": "celsius"
+    },
+    {
+        "device_id": "sensor-outdoor-patio",
+        "temperature": 8.1,
+        "humidity": null,
+        "timestamp": "2026-11-20T14:31:05Z"
+    },
+    {
+        "device_id": "sensor-server-rack",
+        "temperature": 76.5,
+        "timestamp": "2026-11-20T14:32:10Z",
+        "unit": "fahrenheit"
+    }
+]
