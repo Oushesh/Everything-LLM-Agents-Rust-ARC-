@@ -65,7 +65,6 @@
 
    #Call the function for every element you have there
 
-
    ## Phase 2: DFS Algorithm and Traverse 
 
    def dfs_path(graph, start,goal):
@@ -83,7 +82,6 @@
                 goal = came_from[goal]
                 path.append(goal)
 
-
          # if current not goal then we continue in the neighbours
          for neighbour in graph[current]:
              if neighbour not in visted:
@@ -99,10 +97,20 @@
    rust
 
    ```
+
 ## Breadth First Search
+   
 
 # Dijska Algorithm
 
 ## Complexity of DFS: 
    Space Complexity  - O(1)
    Computationl Complexity - N(2) 
+
+   Complexity of BFS: 
+   Breadth First Search: 
+
+   Complexity of Dijska Algorithm: 
+
+
+## <implement both algorithms both in Rust and Python>
