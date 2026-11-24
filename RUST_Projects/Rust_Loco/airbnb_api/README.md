@@ -88,3 +88,7 @@ Check out [a quick tour](https://loco.rs/docs/tutorials/the-tour/) or [build you
    Method B: 
    Use Native vite frontend 
     
+   The Frontend was built using AI studio google for my airbnb: 
+
+   aistudio.google.com
+   https://aistudio.google.com/apps/bundled/material-flask-website?showPreview=true&showAssistant=true
