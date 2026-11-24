@@ -75,7 +75,6 @@ Check out [a quick tour](https://loco.rs/docs/tutorials/the-tour/) or [build you
 
     Step E: Register Routes in src/app.rs
     
-    
     This is the entry point to the app
     Ensure both controllers are mounted inside App::routes in src/app.rs:
 
