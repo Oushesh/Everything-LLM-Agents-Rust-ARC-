@@ -74,8 +74,18 @@ Check out [a quick tour](https://loco.rs/docs/tutorials/the-tour/) or [build you
     Step B: Domain Logic src/modls/bookings.rs
 
     Step E: Register Routes in src/app.rs
+    
+    
     This is the entry point to the app
     Ensure both controllers are mounted inside App::routes in src/app.rs:
 
+## Frontend:
+   Method A: 
 
+   There are 2 ways to do the Frontend: one as native: Next JS
+   * NextJS 16 with Rust Builder
+   * 
+
+   Method B: 
+   Use Native vite frontend 
     
