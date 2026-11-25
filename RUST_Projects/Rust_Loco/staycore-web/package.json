@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "playwright test",
+    "frames": "bash scripts/frames-from-video.sh",
     "test:e2e:codegen": "playwright codegen --target=playwright-test --output=e2e/recorded.spec.ts http://localhost:3000"
   },
   "dependencies": {
