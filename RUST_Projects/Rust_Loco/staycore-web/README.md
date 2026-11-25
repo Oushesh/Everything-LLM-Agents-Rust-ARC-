@@ -38,3 +38,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 ## Frontend-Backend Connection: 
    Once you have the backend running and the code mentionned in the page.tsx is updated, you will be able to see the frontend and backend connected.
    
+## End To End Testing
+   With the advent of AI we can have end to end testing automatically itself and for every deployment part of the test is reviewed and caught beforehaand and then we can review them.
+
+   

@@ -17,4 +17,3 @@
 
 ## Project Parsing CSV Files in Rust: 
    Russqlite Bindings exist and how good are they? 
-   

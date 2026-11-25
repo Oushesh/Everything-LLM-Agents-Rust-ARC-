@@ -1,18 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-interface Listing {
-  id: number;
-  host_id: number;
-  title: string;
-  description: string;
-  city: string;
-  price_per_night_cents: number;
-  max_guests: number;
-  image_url: string;
-  is_active: boolean;
-}
+import type { BookingDto } from "@/types/generated/BookingDto";
+import type { CreateBooking } from "@/types/generated/CreateBooking";
+import type { ListingDto } from "@/types/generated/ListingDto";
+import type { Page } from "@/types/generated/Page";
 
 export default function StayCoreBrowser() {
   const [token, setToken] = useState<string | null>(null);
@@ -21,9 +13,9 @@ export default function StayCoreBrowser() {
   const [password, setPassword] = useState("Password123!");
   const [authError, setAuthError] = useState("");
 
-  const [listings, setListings] = useState<Listing[]>([]);
+  const [listings, setListings] = useState<ListingDto[]>([]);
   const [cityFilter, setCityFilter] = useState("");
-  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [selectedListing, setSelectedListing] = useState<ListingDto | null>(null);
 
   // Booking modal state
   const [checkIn, setCheckIn] = useState("2026-12-10");
@@ -68,7 +60,7 @@ export default function StayCoreBrowser() {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (res.ok) {
-      const data = await res.json();
+      const data: Page<ListingDto> = await res.json();
       setListings(data.items || []);
     }
   }
@@ -96,13 +88,13 @@ export default function StayCoreBrowser() {
         guests_count: guests,
         total_price_cents: nights * selectedListing.price_per_night_cents,
         status: "confirmed",
-      }),
+      } satisfies CreateBooking),
     });
 
     if (res.status === 409) {
       setBookingMsg({ text: "Selected dates are already booked.", ok: false });
     } else if (res.ok) {
-      const booking = await res.json();
+      const booking: BookingDto = await res.json();
       setBookingMsg({ text: `Confirmed! Reservation #${booking.id}`, ok: true });
     } else {
       setBookingMsg({ text: "Booking failed. Check date range.", ok: false });

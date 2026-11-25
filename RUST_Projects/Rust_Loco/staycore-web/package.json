@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:e2e": "playwright test",
+    "test:e2e:codegen": "playwright codegen --target=playwright-test --output=e2e/recorded.spec.ts http://localhost:3000"
   },
   "dependencies": {
     "next": "16.4.6",

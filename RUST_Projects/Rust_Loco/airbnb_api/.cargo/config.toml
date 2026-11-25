@@ -1,3 +1,10 @@
+[env]
+# `cargo test` writes ts-rs bindings here. `relative` is from the directory
+# that contains this `.cargo` folder (the `airbnb_api` crate root).
+TS_RS_EXPORT_DIR = { value = "../staycore-web/src/types/generated", relative = true }
+# JSON has no bigint. The API sends i64 fields as JSON numbers.
+TS_RS_LARGE_INT = "number"
+
 [alias]
 loco = "run --"
 loco-tool = "run --"

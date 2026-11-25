@@ -89,5 +89,5 @@ if __name__ == "__main__":
 # Another assignment could be ok: write some tests for this code: 
 # We can add a test if the path to the goal does not exist
 
-
+# Add the tests here and 
     

@@ -10,6 +10,7 @@ use ts_rs::TS;
 /// own `Pager`. Build it with [`Page::from_query`] rather than by hand — that
 /// is what keeps the two in step.
 #[derive(serde::Serialize, serde::Deserialize, TS)]
+#[ts(export)]
 pub struct Page<T: TS> {
     pub items: Vec<T>,
     #[ts(type = "number")]
@@ -40,6 +41,7 @@ impl<T: TS> Page<T> {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, TS)]
+#[ts(export)]
 pub struct ApiError {
     pub code: String,
     pub message: String,

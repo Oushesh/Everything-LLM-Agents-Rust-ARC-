@@ -2,6 +2,7 @@ use sea_orm::prelude::{Date, DateTimeWithTimeZone};
 use ts_rs::TS;
 
 #[derive(serde::Serialize, serde::Deserialize, TS)]
+#[ts(export)]
 pub struct BookingDto {
     #[ts(type = "number")]
     pub id: i64,
@@ -42,6 +43,7 @@ impl From<crate::models::_entities::bookings::Model> for BookingDto {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, TS)]
+#[ts(export)]
 pub struct CreateBooking {
     #[ts(type = "number")]
     pub listing_id: i64,
@@ -59,6 +61,7 @@ pub struct CreateBooking {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, TS)]
+#[ts(export)]
 pub struct UpdateBooking {
     #[ts(type = "number")]
     pub listing_id: i64,

@@ -1,5 +1,11 @@
 import type { NextConfig } from "next";
 
+/** Loco origin. Browser calls stay on `/api/*`; Next rewrites them here. */
+function locoApiOrigin(): string {
+  const raw = process.env.LOCO_API_URL ?? "http://localhost:5150";
+  return raw.replace(/\/+$/, "");
+}
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
@@ -15,7 +21,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:5150/api/:path*",
+        destination: `${locoApiOrigin()}/api/:path*`,
       },
     ];
   },

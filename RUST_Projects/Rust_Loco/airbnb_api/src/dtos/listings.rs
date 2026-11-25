@@ -2,6 +2,7 @@ use sea_orm::prelude::DateTimeWithTimeZone;
 use ts_rs::TS;
 
 #[derive(serde::Serialize, serde::Deserialize, TS)]
+#[ts(export)]
 pub struct ListingDto {
     #[ts(type = "number")]
     pub id: i64,
@@ -41,6 +42,7 @@ impl From<crate::models::_entities::listings::Model> for ListingDto {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, TS)]
+#[ts(export)]
 pub struct CreateListing {
     #[ts(type = "number")]
     pub host_id: i64,
@@ -56,6 +58,7 @@ pub struct CreateListing {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, TS)]
+#[ts(export)]
 pub struct UpdateListing {
     #[ts(type = "number")]
     pub host_id: i64,
