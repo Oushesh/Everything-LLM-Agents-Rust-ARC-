@@ -21,3 +21,9 @@ target
 #.idea/
 
 *.obscura
+
+
+HingeReview/*
+
+*.next/*
+*/node_modules/*

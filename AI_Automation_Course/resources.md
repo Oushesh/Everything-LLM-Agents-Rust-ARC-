@@ -1,0 +1,1 @@
+https://github.com/ai-developer-community/ai-automation-course/tree/main
